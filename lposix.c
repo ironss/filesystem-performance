@@ -422,6 +422,48 @@ static int Pfdopen(lua_State *L)	/** fdopen(fd, mode) */
 }
 
 
+/***
+ commit buffer cache to disk
+@function sync
+@see sync(2)
+*/
+static int Psync(lua_State *UNUSED (L))
+{
+  sync();
+  return 0;
+}
+
+/***
+ synchronize a file's in-core state with storage device
+@function fsync
+@see fsync(2)
+@int fd
+@return 0 on success, nil otherwise
+@return error message if failed.
+*/
+static int Pfsync(lua_State *L)
+{
+  int fd = luaL_checkint(L, 1);
+  return pushresult(L, fsync(fd), NULL);
+}
+
+#if _POSIX_VERSION >= 200112L
+/***
+ synchronize a file's in-core state with storage device without metadata
+@function fdatasync
+@see fdatasync(2)
+@int fd
+@return 0 on success, nil otherwise
+@return error message if failed.
+*/
+static int Pfdatasync(lua_State *L)
+{
+  int fd = luaL_checkint(L, 1);
+  return pushresult(L, fdatasync(fd), NULL);
+}
+#endif
+
+
 /* helper func for Pdup */
 static const char *filemode(int fd)
 {
@@ -1317,7 +1359,9 @@ static const luaL_reg R[] =
 	{"fdopen",		Pfdopen},
 	{"fileno",		Pfileno},
 	{"files",		Pfiles},
+	{"fdatasync",	Pfdatasync},
 	{"fork",		Pfork},
+	{"fsync",		Pfsync},
 	{"getcwd",		Pgetcwd},
 	{"getenv",		Pgetenv},
 	{"getgroup",		Pgetgroup},
@@ -1346,6 +1390,7 @@ static const luaL_reg R[] =
 	{"stat",		Pstat},
 	{"strftime",		Pstrftime},
 	{"sysconf",		Psysconf},
+	{"sync",		Psync},
 	{"time",		Ptime},
 	{"times",		Ptimes},
 	{"ttyname",		Pttyname},
